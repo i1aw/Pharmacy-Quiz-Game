@@ -1,6 +1,6 @@
 # RPhdle: Pharmacist Case Quiz
 
-A case-based quiz for pharmacists and pharmacy students. Each case has three rounds pulled from real pharmacy workflow:
+An AI generated case-based quiz for pharmacists and pharmacy students. Each case has three rounds pulled from real pharmacy workflow:
 
 1. **Drug ID**: name the drug from pharmacy-floor clues (verification flags, interactions, counseling, monitoring, dispensing). Each wrong guess unlocks another clue; colored feedback shows whether a guess was in the same class or therapeutic area.
 2. **The Call**: pick the best pharmacist action for a verification scenario, then read the rationale.
