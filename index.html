@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Case-based quiz for pharmacists: identify the drug, make the pharmacist's call, and check the math.">
+<meta name="theme-color" content="#0f766e">
+<title>RPhdle: Pharmacist Case Quiz</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="css/styles.css?v=2">
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <button class="logo" id="homeLogo" aria-label="All cases">
+      <span class="rx" aria-hidden="true">℞</span>
+      <span>RPhdle<small>Pharmacist case quiz</small></span>
+    </button>
+    <nav class="icons">
+      <button class="icon-btn" id="btnHelp" aria-label="How to play">?</button>
+      <button class="icon-btn" id="btnCases">Cases</button>
+      <button class="icon-btn" id="btnStats">Stats</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ============ HOME: case list ============ -->
+  <div id="viewHome">
+    <section class="card intro">
+      <h2>Pick a case</h2>
+      <p class="sub" style="margin-bottom:6px">Each case is pulled from real pharmacy workflow and has three rounds:</p>
+      <ul class="rounds">
+        <li><b class="num">1</b><span><b>Drug ID:</b> name the drug from pharmacy-floor clues. Each miss unlocks another.</span></li>
+        <li><b class="num">2</b><span><b>The Call:</b> pick the best action at the verification station.</span></li>
+        <li><b class="num">3</b><span><b>The Math:</b> one pharmacy calculation, one try.</span></li>
+      </ul>
+    </section>
+
+    <div class="session-bar">
+      <span id="sessionSummary"></span>
+      <button class="back-btn" id="resetBtn">Reset session</button>
+    </div>
+    <div class="case-grid" id="caseGrid"></div>
+  </div>
+
+  <!-- ============ CASE view ============ -->
+  <div id="viewCase" class="hidden">
+    <div class="meta">
+      <button class="back-btn" id="backBtn">← All cases</button>
+      <span id="caseLabel"></span>
+    </div>
+    <div class="progress" aria-hidden="true">
+      <div id="p1">1 · Drug ID</div>
+      <div id="p2">2 · The Call</div>
+      <div id="p3">3 · The Math</div>
+    </div>
+
+    <!-- Round 1 -->
+    <section class="card" id="roundOne">
+      <h2>Round 1: Name the drug</h2>
+      <p class="sub">Every miss unlocks another clue. You get 6 guesses.</p>
+      <ul class="clues" id="clues"></ul>
+      <div class="guesses" id="guesses" aria-live="polite"></div>
+      <div class="slots" id="slots"></div>
+
+      <div class="guess-area" id="guessArea">
+        <div class="guess-wrap">
+          <input id="guessInput" type="text" placeholder="Type a drug name…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-label="Drug name">
+          <button class="btn" id="guessBtn">Guess</button>
+          <div class="suggest" id="suggest" role="listbox"></div>
+        </div>
+        <div class="hint-line">🟨 same drug class · 🟧 same therapeutic area · ⬜ not close</div>
+      </div>
+    </section>
+
+    <!-- Reveal -->
+    <section class="card reveal-card hidden" id="reveal">
+      <div class="result-banner" id="resultBanner"></div>
+      <div class="answer-name" id="answerName"></div>
+      <div class="sub" id="answerClass" style="margin:0"></div>
+      <div class="pearl" id="pearl"></div>
+    </section>
+
+    <!-- Round 2 -->
+    <section class="card hidden" id="roundTwo">
+      <h2>Round 2: Pharmacist's Call</h2>
+      <p class="sub">You're at the verification station. Pick the best action.</p>
+      <div class="scenario" id="scenario"></div>
+      <div class="options" id="options"></div>
+      <div class="explain hidden" id="explain"></div>
+    </section>
+
+    <!-- Round 3 -->
+    <section class="card hidden" id="roundThree">
+      <h2>Round 3: Check the Math</h2>
+      <p class="sub">One shot. Use a calculator if you need one; you'd have one at work.</p>
+      <div class="scenario" id="calcPrompt"></div>
+      <div class="calc-row" id="calcForm">
+        <input id="calcInput" type="text" inputmode="decimal" enterkeyhint="done" placeholder="Your answer" autocomplete="off" aria-label="Your answer">
+        <span class="unit" id="calcUnit"></span>
+        <button class="btn" id="calcBtn">Submit</button>
+      </div>
+      <div class="explain hidden" id="calcExplain"></div>
+    </section>
+
+    <!-- Done -->
+    <section class="card done-card hidden" id="done">
+      <h2 id="doneTitle">Case complete</h2>
+      <div class="score-big" id="doneScore"></div>
+      <p class="sub" id="doneSub"></p>
+      <div class="btn-row">
+        <button class="btn" id="nextBtn">Next case →</button>
+        <button class="btn ghost" id="shareBtn">Share result</button>
+        <button class="btn ghost" id="replayBtn">Replay case</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  For education and entertainment only. Not clinical advice; always verify against current labeling, guidelines, and your institution's protocols.
+</footer>
+
+<!-- ============ Modals ============ -->
+<div class="modal-bg hidden" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="modal">
+    <button class="icon-btn close" data-close aria-label="Close">✕</button>
+    <h2 id="helpTitle">How to play</h2>
+    <p>Each case is pulled from real pharmacy workflow: verification flags, interaction alerts, counseling points, monitoring, and dispensing rules. Play them in any order.</p>
+    <p><b>Round 1: Drug ID.</b> You start with one clue. Each wrong guess reveals another. Six guesses max.</p>
+    <div class="legend">
+      <div class="g correct">Correct drug <small>✓</small></div>
+      <div class="g class">Same drug class <small>e.g. a different statin</small></div>
+      <div class="g system">Same therapeutic area <small>e.g. cardio, wrong class</small></div>
+      <div class="g miss">Not close <small>different area</small></div>
+    </div>
+    <p><b>Round 2: Pharmacist's Call.</b> You're handed a verification scenario. Choose the best pharmacist action and read the rationale.</p>
+    <p><b>Round 3: Check the Math.</b> A pharmacy calculation tied to the case, such as days supply, renal function, an infusion rate, or a pediatric dose. Type a number; you get one try.</p>
+    <p>Stats cover every case you play this session. Closing the tab starts a fresh session.</p>
+    <button class="btn" data-close>Got it</button>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="statsModal" role="dialog" aria-modal="true" aria-labelledby="statsTitle">
+  <div class="modal">
+    <button class="icon-btn close" data-close aria-label="Close">✕</button>
+    <h2 id="statsTitle">Session stats</h2>
+    <div class="stats" id="statsGrid"></div>
+    <h3 style="font-size:.95rem;margin-bottom:8px">Drug ID guess distribution</h3>
+    <div class="dist" id="dist"></div>
+    <p class="sub" style="margin-top:14px;margin-bottom:2px" id="callStat"></p>
+    <p class="sub" style="margin:0 0 14px" id="calcStat"></p>
+    <button class="btn ghost" id="statsResetBtn">Reset session</button>
+  </div>
+</div>
+
+<!-- Bump ?v= when you change these files so browsers don't serve a stale cached copy -->
+<script src="js/drugs.js?v=1"></script>
+<script src="js/cases.js?v=1"></script>
+<script src="js/app.js?v=1"></script>
+</body>
+</html>
